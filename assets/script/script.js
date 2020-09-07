@@ -1,3 +1,4 @@
+  
 //the variables being called
 var apiKey = "ae7db87635d2ab4e4912aa3633bda4f0"
 var DailyWeather = $("#HrlyWeather");
