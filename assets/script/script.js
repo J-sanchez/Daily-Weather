@@ -1,10 +1,10 @@
 //the variables being called
-const apiKey = "ae7db87635d2ab4e4912aa3633bda4f0"
+var apiKey = "ae7db87635d2ab4e4912aa3633bda4f0"
 var DailyWeather = $("#HrlyWeather");
 var Forecast = $("#weather")
-var cityURL = 'api.openweathermap.org/data/2.5/weather?q={city name},{state code}&appid={apiKey}'
+var cityURL = `https://api.openweathermap.org/data/2.5/weather?APPID=${apiKey}&q=`
 var newCity;
-var searchedArr = JSON.parse(loacalStorage.getItem('searchedItems')) || [];
+var searchedArr = JSON.parse(localStorage.getItem('searchedItems')) || [];
 var city;
 var temp;
 var humidity;
@@ -26,11 +26,34 @@ $(document).ready(function() {
             document.getElementById("clear").style.visibility = "hidden";
         }
     }
+
+    function returnUVIndex(coordinates) {
+        var cityUV = `https://api.openweathermap.org/data/2.5/uvi?lat=${coordinates.lat}&lon=${coordinates.lon}&APPID=${apiKey}`;
+    
+        $.get(cityUV).then(function(response){
+            let currUVIndex = response.value;
+            let uvSeverity = "green";
+            let textColour = "white"
+            if (currUVIndex >= 11) {
+                uvSeverity = "red";
+            } else if (currUVIndex >= 8) {
+                uvSeverity = "orange";
+            } else if (currUVIndex >= 6) {
+                uvSeverity = "yellow";
+                textColour = "black"
+            } else if (currUVIndex >= 3) {
+                uvSeverity = "green";
+                textColour = "black"
+            }
+            currWeatherDiv.append(`<p>UV Index: <span class="text-${textColour} uvPadding" style="background-color: ${uvSeverity};">${currUVIndex}</span></p>`);
+        })
+    }
+
     var fivedayforecastURL = `https://api.openweathermap.org/data/2.5/forecast?APPID=${apiKey}&q=`
     function display5dayforecast(){
         $.ajax({
             url:fivedayforecastURL + city + 'us&units=imperial',
-            method: "PULLdata"
+            method: "GET"
         }).then(function (pullFive) {
             for (var i = 0; i < pullFive.list.length; i++) {
                 if (pullFive.list[i].dt_txt.indexOf("15:00:00") !== -1) {
@@ -59,3 +82,35 @@ $(document).ready(function() {
             }
         })
     }
+
+    $('#searchBtn').on('click', function (e) {
+        e.preventDefault();
+        $('#foreCast').empty();
+    })
+
+
+
+    function displayDashbord() {
+        $('#foreCast').empty();
+        $('#showCity').text(city);
+        dateEl.text('(' + formatted_date + ')');
+        $('#image').attr('src', icon);
+        $('#temperature').text(temparature + String.fromCharCode(176) + ' F');
+        $('#humidity').text(humidity + '%');
+        $('#wind').text(wind + ' MPH');
+        $('#index').text(index);
+        display5dayforecast();
+    }
+
+    $(document).on('click', 'li', function (e) {
+        e.preventDefault();
+        var searchedCity = $(this).text();
+    })
+
+    $('#clear').on('click', function(){
+        localStorage.clear();
+        location.reload();
+    })
+
+    displaylist();
+})
